@@ -1,11 +1,11 @@
 import os
 
-from page import Page, get_pdf_docs, message
+from utils import Page, get_pdf_docs, message
 
 
 def main():
     try:
-        pdf_docs = get_pdf_docs("kavX")
+        pdf_docs = get_pdf_docs("notas")
 
         processed_pages = 0
         total_pages = 0
@@ -24,7 +24,7 @@ def main():
                 if success:
                     processed_pages += 1
 
-                print(message(page.page_number, total, success))
+                print(message(page.page_number, total))
 
             pdf.close()
 
