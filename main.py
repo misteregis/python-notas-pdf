@@ -1,11 +1,35 @@
 import os
+import time
 
-from utils import Page, get_pdf_docs, message
+from models import Config
+from models.page import Page
+from utils import (
+    exit_application,
+    get_pdf_docs,
+    message,
+    page_message,
+    set_title,
+    success,
+    warn,
+)
 
+config = Config()
 
 def main():
+    _input = config.get_input_folder()
+    _output =config.get_output_folder()
+    _max = max(len(_input), len(_output)) + 27
+
+    print(" Iniciando...\n", "-" * _max)
+    set_title("Iniciando...")
+    message("Origem:", end="")
+    warn(_input)
+    message("Destino:", end="")
+    warn(_output)
+    print("", "-" * _max)
+
     try:
-        pdf_docs = get_pdf_docs("notas")
+        pdf_docs = get_pdf_docs()
 
         processed_pages = 0
         total_pages = 0
@@ -15,26 +39,36 @@ def main():
             total = len(pdf.pages)
             total_pages += total
 
-            print(f"Processando arquivo {doc_name}...")
+            status = f"Processando arquivo {doc_name}..."
+            set_title(status)
+            warn(status)
 
             for current_page in pdf.pages:
                 page = Page(pdf, current_page, current_page.page_number)
-                success = page.save()
+                saved = page.save()
 
-                if success:
+                if saved:
                     processed_pages += 1
 
-                print(message(page.page_number, total))
+                page_message(page.page_number, total, saved)
 
             pdf.close()
 
-            print("-" * 50)
+            print("", "-" * _max)
 
-        print(f"Número de páginas processas com sucesso: {processed_pages} de {total_pages}\n\t")
+        msg = f"Número de páginas processadas com sucesso: {processed_pages} de {total_pages}"
+
+        set_title("Concluído!")
+
+        if processed_pages == total_pages:
+            success(msg)
+        else:
+            warn(msg)
     except Exception as e:
-        print(e)
+        exit_application(e)
 
-    os.system("pause")
+    exit_application()
+
 
 if __name__ == "__main__":
     main()

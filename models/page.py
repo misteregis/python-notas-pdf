@@ -6,7 +6,11 @@ import fitz
 import pdfplumber
 from pdfminer.pdfpage import PDFPage
 
-default_output_dir_name = "output"
+from models.config import Config
+from utils.helper import *
+
+DEFAULT_OUTPUT_DIR_NAME = "output"
+
 
 class Page(pdfplumber.page.Page):
     def __init__(
@@ -24,6 +28,7 @@ class Page(pdfplumber.page.Page):
         self.text = page_obj.extract_text()
         self.dirname = os.path.dirname(self.pdf.path)
         self.filename = os.path.basename(self.pdf.path)
+        self.config = Config()
 
     def __enter__(self) -> "Page":
         return self
@@ -38,11 +43,14 @@ class Page(pdfplumber.page.Page):
             doc = fitz.open(self.pdf.path)
             output_pdf = fitz.open()
             output_pdf_pg_num = self.page_number - 1
-            output_pdf.insert_pdf(doc, from_page=output_pdf_pg_num, to_page=output_pdf_pg_num)
-            # output_pdf.save(self.__get_unique_name())
+            output_pdf.insert_pdf(
+                doc,
+                from_page=output_pdf_pg_num,
+                to_page=output_pdf_pg_num
+            )
+            output_pdf.save(self.__get_unique_name())
             success = True
-        except Exception as e:
-            print(e)
+        except:
             pass
         finally:
             self.page_obj.close()
@@ -53,44 +61,68 @@ class Page(pdfplumber.page.Page):
         """
         Extrai valores monetários do texto fornecido.
 
-        A função procura por símbolos de moeda (R$, $, €, £) seguidos por valores
-        com separadores opcionais de vírgula ou ponto.
+        A função procura por palavras específicas seguidos por valores
+        com separadores opcionais de ponto ou vírgula.
 
         Args:
             index (int, opcional): Um índice específico para retornar apenas o valor encontrado nessa posição.
-                                    Se não fornecido, todos os valores encontrados são retornados.
+                                    Se não fornecido, todos os valores encontrados serão retornados.
                                     O valor padrão é None.
 
         Returns:
-            list of tuples: Uma lista de tuplas onde cada tupla contém um símbolo de moeda e o valor correspondente.
-                            Exemplo: [('R$', '1.234,56'), ('$', '2,345.67'), ('€', '300,50'), ('£', '400.00')]
+            list of tuples: Uma lista de tuplas onde cada tupla contém a palavra identificada e o valor correspondente.
+                            Exemplo: [('Valor principal', '1.234,56'), ('Valor nominal', '2,345.67'), ('Valor total', '300,50'), ('Valor', '400.00')]
 
                             Se um índice for fornecido, retorna apenas a tupla nessa posição.
-                            Exemplo: ('R$', '1.234,56')
+                            Exemplo: ('Valor principal', '1.234,56')
         """
-        # Padrão de expressão regular para encontrar valores monetários
-        pattern = r"((?:R\$|\$|\€|\£))\s*(\d+(?:[.,]\d{3})*(?:[.,]\d+)?)"
 
-        # Encontrar todas as correspondências no texto e retornar como uma lista de tuplas
-        match = re.findall(pattern, self.text)
+        words = "|".join(self.config.get_key_values())
+        pattern_symbol = rf"({words}):?\s*R?\$?\s?"
+        pattern_value = r"(\d+(?:[.,]\d{3})*(?:[.,]\d+)?)"
+        pattern = pattern_symbol + pattern_value
+
+        # Encontra todas as correspondências no texto e retorna como uma lista de tuplas
+        match = re.findall(pattern, self.text, re.IGNORECASE)
 
         return match[index] if index is not None else match
 
+    def __get_bank_acronym(self) -> str | None:
+        bank_acronyms = self.config.get_bank_acronyms()
+
+        for bank_name, bank_acronym in bank_acronyms.items():
+            if bank_name in self.text.upper():
+                return bank_acronym
+
+        return None
+
     def __get_recipient_name(self):
-        # Padrão de expressão regular para encontrar valores monetários
-        pattern = r"Nome do Destinatário:\s*([a-zA-Z\s]+?)\s*(?:-|\n|$)"
+        words = "|".join(["NOME DO DESTINATÁRIO", "FAVORECIDO"])
 
-        # Encontrar todas as correspondências no texto e retornar como uma lista de tuplas
-        match = re.search(pattern, self.text)
+        # Padrão de expressão regular para encontrar textos após as palavras específicas
+        pattern = rf"({words}):?\s*([a-zA-Z\s]+?)\s*(?:-|\n|$)"
 
-        return match.group(1).strip() if match else None
+        match = re.search(pattern, self.text, re.IGNORECASE)
+
+        return match.group(2).strip() if match else None
 
     def __get_unique_name(self):
         extension = "pdf"
-        symbol, value = self.__extract_currency_values(0)
+        _, value = self.__extract_currency_values(0)
         recipient_name = self.__get_recipient_name()
-        doc_name = f"{recipient_name} {symbol} {value}" if recipient_name else f"{symbol} {value}"
-        output_dir = os.path.join(self.dirname, default_output_dir_name)
+        bank_acronym = self.__get_bank_acronym()
+        symbol = "R$"
+
+        doc_name = (
+            f"{recipient_name} {symbol} {value}"
+            if recipient_name
+            else f"{symbol} {value}"
+        )
+
+        if bank_acronym:
+            doc_name = f"{bank_acronym}_{doc_name}"
+
+        output_dir = self.config.get_output_folder()
         basename = os.path.join(output_dir, doc_name)
 
         if not os.path.exists(output_dir):

@@ -164,3 +164,6 @@ flask_session/
 static/assets/
 
 **CodeRunner**
+config.ini
+receipts/
+*.pdf
