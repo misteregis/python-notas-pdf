@@ -16,7 +16,7 @@ Este projeto é uma aplicação Python para processar documentos PDF e extrair i
   - **__init__.py**: Inicializador do pacote `models`.
 - **utils/**:
   - **constants.py**: Constantes utilizadas no projeto.
-  - **file_helpers.py**: Funções auxiliares para manipulação de arquivos.
+  - **file_helpers.py**: Funções auxiliares para seleção de pastas e manipulação de arquivos.
   - **helper.py**: Funções auxiliares diversas.
   - **message.py**: Funções para exibição de mensagens.
   - **string_helpers.py**: Funções auxiliares para manipulação de strings.
@@ -58,4 +58,4 @@ A classe [Page](models/page.py#L15) é responsável por manipular e processar as
 
 ### utils/helper.py
 
-Contém funções auxiliares para operações como obtenção de documentos PDF ([get_pdf_docs](utils/file_helpers.py#L7)), exibição de mensagens ([page_message](utils/message.py#L6)), e configuração de título ([set_title](utils/helper.py#L7)).
+Contém funções auxiliares para operações como configuração de título ([set_title](utils/helper.py#L7)).

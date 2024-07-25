@@ -13,22 +13,22 @@ from utils import (
     warn,
 )
 
-config = Config()
-
 def main():
-    _input = config.get_input_folder()
-    _output =config.get_output_folder()
-    _max = max(len(_input), len(_output)) + 27
-
-    print(" Iniciando...\n", "-" * _max)
-    set_title("Iniciando...")
-    message("Origem:", end="")
-    warn(_input)
-    message("Destino:", end="")
-    warn(_output)
-    print("", "-" * _max)
-
     try:
+        config = Config()
+
+        _input = config.get_input_folder()
+        _output =config.get_output_folder()
+        _max = max(len(_input), len(_output)) + 27
+
+        print(" Iniciando...\n", "-" * _max)
+        set_title("Iniciando...")
+        message("Origem:", end="")
+        warn(_input)
+        message("Destino:", end="")
+        warn(_output)
+        print("", "-" * _max)
+
         pdf_docs = get_pdf_docs()
 
         processed_pages = 0

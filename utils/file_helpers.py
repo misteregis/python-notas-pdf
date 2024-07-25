@@ -1,7 +1,46 @@
 import os
+import tkinter as tk
+from tkinter import filedialog
 
 import pdfplumber
 from colorama import Fore
+
+from utils.helper import set_title
+
+
+def select_folder(title: str = "Selecione uma pasta") -> str:
+    """
+    Abre um diálogo de seleção de pasta do Windows e retorna o caminho da pasta selecionada.
+
+    Args:
+        title (str, optional): O título do diálogo de seleção de pasta. Padrão é "Selecione uma pasta".
+
+    Returns:
+        str: O caminho normalizado da pasta selecionada.
+
+    Raises:
+        Exception: Se nenhuma pasta for selecionada.
+
+    Example:
+        >>> try:
+        >>>     selected_folder = select_folder("Escolha um diretório")
+        >>>     print(f"Diretório selecionado: {selected_folder}")
+        >>> except Exception as e:
+        >>>     print(f"Erro: {e}")
+    """
+    root = tk.Tk()
+    root.withdraw()  # Esconde a janela principal do Tkinter
+
+    # Abre o diálogo de seleção de pasta
+    folder_selected = filedialog.askdirectory(title=title, mustexist=True)
+
+    if not folder_selected:
+        raise Exception(f"{Fore.LIGHTRED_EX}Por favor, selecione a pasta de origem/destino.{Fore.RESET}")
+
+    # Normaliza o caminho para usar barras invertidas
+    folder_selected_normalized = os.path.normpath(folder_selected)
+
+    return folder_selected_normalized
 
 
 def get_pdf_docs() -> list[str]:
@@ -51,6 +90,7 @@ def get_pdf_docs() -> list[str]:
     if pdf_docs:
         return pdf_docs
     else:
+        set_title("Concluído!")
         raise Exception(f"{Fore.LIGHTRED_EX}Nenhum documento encontrado!{Fore.RESET}")
 
 
