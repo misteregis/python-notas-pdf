@@ -4,10 +4,9 @@ just_fix_windows_console()
 
 
 def page_message(page_number: int, total: int, success: bool) -> str:
-    icon = "\u2713" if success else "\u2717"
     color = Fore.LIGHTGREEN_EX if success else Fore.LIGHTYELLOW_EX
 
-    print(f"   {color}Página {page_number} de {total} {icon}{Fore.RESET}")
+    print(f"   {color}Página {page_number} de {total}{Fore.RESET}")
 
 
 def message(text: str, type: int = 0, end: str = "\n") -> str:
