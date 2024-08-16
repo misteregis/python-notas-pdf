@@ -34,6 +34,7 @@ class Config(ConfigManager):
         self.set_value("App", "bank_acronyms", self.bank_acronyms)
         self.set_value("Folder", "input_folder", input_folder_title)
         self.set_value("Folder", "output_folder", output_folder_title)
+        self.set_value("Folder", "output_filename", FILENAME)
         self.save_config()
 
     def get_title(self):
@@ -52,3 +53,6 @@ class Config(ConfigManager):
 
     def get_output_folder(self):
         return self.get_value("Folder", "output_folder", self.output_folder)
+
+    def get_output_filename(self):
+        return self.get_value("Folder", "output_filename", FILENAME)

@@ -1,3 +1,6 @@
+import re
+
+
 def string_list_to_json(words: str, use_even_indices: bool = True, separator: str = ",") -> dict:
     """
     Converte uma string contendo pares de palavras em um dicionário JSON.
@@ -44,3 +47,43 @@ def string_list_to_json(words: str, use_even_indices: bool = True, separator: st
         dictionary = {word_list[i + 1]: word_list[i] for i in range(0, len(word_list), 2)}
 
     return dictionary
+
+
+def replace_words(text, replacements):
+    """
+    Substitui palavras em um texto dado com base em um dicionário de substituições.
+
+    Args:
+        text (str): O texto original a ser modificado.
+        replacements (dict): Um dicionário contendo palavras a serem substituídas como chaves e suas substituições correspondentes como valores.
+
+    Returns:
+        str: O texto modificado com as palavras substituídas.
+
+    Example:
+        >>> replace_words("Eu amo comer pizza", {"pizza": "sushi"})
+        'Eu amo comer sushi'
+        >>> replace_words("Eu odeio pizza", {"pizza": "sushi", "odeio": "amo"})
+        'Eu amo sushi'
+    """
+
+    # Cria um padrão que captura palavras e também os separadores ao redor
+    pattern = re.compile(
+        r"\b("
+        + "|".join(re.escape(word.upper()) for word in replacements.keys())
+        + r")\b",
+        re.IGNORECASE,
+    )
+
+    # Substitui as palavras de acordo com o dicionário e mantém o separador original
+    replaced_text = pattern.sub(
+        lambda match: replacements.get(match.group(0).upper(), ""), text
+    )
+
+    # Remove duplicações de separadores (espaços, hífens, etc.) deixados por substituições
+    replaced_text = re.sub(r"([^\w\s]|_)\1+|(\s)\2+", r"\1\2", replaced_text)
+
+    # Remove separadores extras do início ou final da string
+    replaced_text = re.sub(r"^[^\w\s]+|[^\w\s]+$", "", replaced_text).strip()
+
+    return replaced_text

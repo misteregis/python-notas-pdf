@@ -8,6 +8,7 @@ from pdfminer.pdfpage import PDFPage
 
 from models.config import Config
 from utils.helper import *
+from utils.string_helpers import replace_words
 
 DEFAULT_OUTPUT_DIR_NAME = "output"
 
@@ -111,16 +112,13 @@ class Page(pdfplumber.page.Page):
         _, value = self.__extract_currency_values(0)
         recipient_name = self.__get_recipient_name()
         bank_acronym = self.__get_bank_acronym()
-        symbol = "R$"
+        words = {
+            "BANK": bank_acronym,
+            "RECIPIENT": recipient_name,
+            "VALUE": value
+        }
 
-        doc_name = (
-            f"{recipient_name} {symbol} {value}"
-            if recipient_name
-            else f"{symbol} {value}"
-        )
-
-        if bank_acronym:
-            doc_name = f"{bank_acronym}_{doc_name}"
+        doc_name = replace_words(self.config.get_output_filename(), words)
 
         output_dir = self.config.get_output_folder()
         basename = os.path.join(output_dir, doc_name)
